@@ -1,23 +1,24 @@
-const http = require("http");
-const querystring = require("querystring");
-// console.log('method:', req.method);
-// console.log('url:', req.url);
-// req.query = querystring.parse(req.url.split('?')[1])
-// console.log('req.query:', req.query);
-// res.end(JSON.stringify(req.query));
-const server = http.createServer((req, res) => {
-  if (req.method === "POST") {
-    console.log("req content type", req.headers["content-type"]);
-    let postData = '';
-    req.on('data',chunk => {
-        postData += chunk.toString();
-    });
-    req.on('end',() => {
-        console.log('postData: ',postData);
-        res.end('hello world');
-    });
-  }
-});
+const handleBlogRouter = require("./src/router/blog");
+const handleUserRouter = require("./src/router/user");
 
-server.listen(8000);
-console.log("OK 8000");
+const serverHandle = (req, res) => {
+  res.setHeader("Content-type", "application/json");
+
+  const blogData = handleBlogRouter(req, res);
+  if (blogData) {
+    res.end(JSON.stringify(blogData));
+    return;
+  }
+
+  const userData = handleUserRouter(req, res);
+  if (userData) {
+    res.end(JSON.stringify(userData));
+    return;
+  }
+
+  // 404
+  res.writeHead(404, { "Content-type": "text/plain" });
+  res.write("404 Not Found\n");
+  res.end();
+};
+module.exports = serverHandle;
